@@ -1,0 +1,57 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+import { getEnabledCategories } from "../data/categories";
+
+const allPosts = await getCollection("posts", ({ data }) => !data.draft);
+const enabled = getEnabledCategories();
+
+function fmtDate(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
+const byCategory = enabled.map((cat) => ({
+  cat,
+  posts: allPosts
+    .filter((p) => p.data.category === cat.slug)
+    .sort((a, b) => b.data.publishDate.getTime() - a.data.publishDate.getTime()),
+}));
+
+const totalPosts = allPosts.length;
+---
+
+<BaseLayout title="서울 콘텐츠 게시판">
+  <header class="mb-10 border-b border-neutral-200 pb-6">
+    <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">서울 콘텐츠 게시판</h1>
+    <p class="mt-2 text-neutral-600">맛집·카페·행사·관광지·동네를 직접 다녀와 기록합니다.</p>
+    <p class="mt-1 text-sm text-neutral-500">{totalPosts}편 · 카테고리 {enabled.length}개</p>
+  </header>
+
+  {byCategory.map(({ cat, posts }) => (
+    <section class="mb-10">
+      <h2 class="text-xl sm:text-2xl font-semibold flex items-center gap-2 mb-3" style={`color: ${cat.color}`}>
+        <span aria-hidden="true">{cat.icon}</span>
+        <span>{cat.name}</span>
+        <span class="text-sm font-normal text-neutral-500">({posts.length})</span>
+      </h2>
+      <p class="text-sm text-neutral-600 mb-4">{cat.description}</p>
+      {posts.length === 0 ? (
+        <p class="text-sm text-neutral-400 italic">아직 글이 없습니다.</p>
+      ) : (
+        <ul class="space-y-2">
+          {posts.map((p) => (
+            <li class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <span class="font-medium">{p.data.title}</span>
+              <span class="text-sm text-neutral-500">· {p.data.location.district}</span>
+              <span class="text-sm text-neutral-400">· {fmtDate(p.data.publishDate)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  ))}
+
+  <footer class="mt-16 border-t border-neutral-200 pt-6 text-sm text-neutral-500">
+    <p>Phase 1 임시 홈 · 카테고리/태그 필터, 지도, 검색, 댓글은 Phase 2에서 추가됩니다.</p>
+  </footer>
+</BaseLayout>
