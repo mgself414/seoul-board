@@ -5,7 +5,8 @@ import { getEnabledCategories } from "../data/categories";
 
 const allPosts = await getCollection("posts", ({ data }) => !data.draft);
 const enabled = getEnabledCategories();
-const base = import.meta.env.BASE_URL;
+// BASE_URL은 base 설정에 따라 trailing slash가 있을 수도 없을 수도 있어 항상 정규화.
+const base = (import.meta.env.BASE_URL || "/").replace(/\/$/, "") + "/";
 
 function fmtDate(d: Date): string {
   return d.toISOString().slice(0, 10);
